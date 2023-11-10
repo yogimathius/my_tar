@@ -29,6 +29,24 @@ void my_strncpy(char *dest, const char *src, size_t n) {
   }
 }
 
+int contains_dir(char *pathname) {
+    for (int i = 0; i < strlen(pathname); i++) {
+        if (pathname[i] == '/') {
+            return i;
+        }
+    }
+    return 0;
+}
+
+char* copyString(char s[], int size)
+{
+    char* s2;
+    s2 = (char*)malloc(size);
+ 
+    strcpy(s2, s);
+    return (char*)s2;
+}
+
 void my_memset(void *s, int c, size_t n) {
   unsigned char* p = s;
   while (n--) {
@@ -112,7 +130,6 @@ void append_archive(const char *filename, char *files[], int file_count) {
   }
 }
 
-
 void list_archive(const char *filename) {
   int archive_fd = open(filename, O_RDONLY);
   if (archive_fd == -1) {
@@ -144,7 +161,46 @@ void update_archive(const char *filename, char *files[], int file_count) {
 }
 
 void extract_archive(const char *filename) {
-  // TODO: Implement
+  int archive_fd = open(filename, O_RDONLY);
+  if (archive_fd == -1) {
+    error_msg(STDERR_FILENO, "Failed to open the file\n");
+    return;
+  }
+
+  FileEntry entry;
+  while (read(archive_fd, &entry, sizeof(entry)) == sizeof(entry)) {
+    if (entry.filename[0] == '\0') {
+      break;
+    }
+    int i;
+    char *dir;
+    if ((i = contains_dir(entry.filename)) > 0) {
+        dir = copyString(entry.filename, i);
+        dir[i] = '\0';
+        printf("dir copied: %s\n", dir);
+        mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    }
+
+    int file_desc = open(entry.filename, O_RDONLY | O_CREAT);
+
+    if (file_desc == -1) {
+        error_msg(STDERR_FILENO, "Cannot extract file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char buffer[TAR_BLOCK_SIZE];
+    write(file_desc, buffer, entry.size);
+    my_printf(STDOUT_FILENO, entry.filename);
+    my_printf(STDOUT_FILENO, "\n");
+
+    if (lseek(archive_fd, entry.size, SEEK_CUR) == -1) {
+      error_msg(STDERR_FILENO, "Seek failed\n");
+      close(archive_fd);
+      return;
+    }
+  }
+
+  close(archive_fd);
 }
 
 int main(int argc, char **argv) {
