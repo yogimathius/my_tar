@@ -23,5 +23,8 @@ $(TARGET): $(SRC)
 clean:
 	rm -f $(TARGET)
 
+fclean: clean
+	rm -f $(TARGET)
+
 # Phony targets
 .PHONY: all clean

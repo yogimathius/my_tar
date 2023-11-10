@@ -9,64 +9,99 @@
 
 typedef struct {
   char filename[256];
-  char size[12];
+  size_t size;
   time_t mod_time;
 } FileEntry;
 
 #define TAR_BLOCK_SIZE 512
 
+void error_msg(int fd, const char *msg) { write(fd, msg, strlen(msg)); }
+
+void my_printf(int fd, const char *msg) { write(fd, msg, strlen(msg)); }
+
+void my_strncpy(char *dest, const char *src, size_t n) {
+  size_t i;
+  for (i = 0; i < n && src[i] != '\0'; i++) {
+    dest[i] = src[i];
+  }
+  for (; i < n; i++) {
+    dest[i] = '\0';
+  }
+}
+
+void my_memset(void *s, int c, size_t n) {
+  unsigned char* p = s;
+  while (n--) {
+    *p++ = (unsigned char)c;
+  }
+}
+
 void create_archive(const char *filename, char *files[], int file_count) {
   int archive_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
   if (archive_fd == -1) {
-    perror("Cannot create archive");
+    error_msg(STDERR_FILENO, "Cannot create archive\n");
     exit(EXIT_FAILURE);
   }
 
   for (int i = 0; i < file_count; ++i) {
     int file_fd = open(files[i], O_RDONLY);
     if (file_fd == -1) {
-      perror("Cannot open file");
+      close(archive_fd);
+      fprintf(stderr, "tar: %s: Cannot stat: No such file or directory\n", files[i]);
       exit(EXIT_FAILURE);
     }
 
     struct stat file_stat;
     if (fstat(file_fd, &file_stat) != 0) {
-      perror("Cannot stat file");
+      error_msg(STDERR_FILENO, "Cannot stat file\n");
+      close(file_fd);
+      close(archive_fd);
       exit(EXIT_FAILURE);
     }
 
     FileEntry entry;
-    strncpy(entry.filename, files[i], 255);
-    snprintf(entry.size, sizeof(entry.size), "%lo", file_stat.st_size);
+    my_memset(&entry, 0, sizeof(entry)); 
+    my_strncpy(entry.filename, files[i], sizeof(entry.filename) - 1);
+    entry.size = file_stat.st_size; 
     entry.mod_time = file_stat.st_mtime;
 
-    write(archive_fd, &entry, sizeof(FileEntry));
-    char *endPtr;
-    long int fileSize = strtol(entry.size, &endPtr, 8);
-    char *buffer = malloc(fileSize);
-
-    if (buffer == NULL) {
-      perror("Memory allocation failed");
+    if (write(archive_fd, &entry, sizeof(entry)) != sizeof(entry)) {
+      error_msg(STDERR_FILENO, "Failed to write file entry to archive\n");
+      close(file_fd);
+      close(archive_fd);
       exit(EXIT_FAILURE);
     }
 
-    read(file_fd, buffer, fileSize);
-    write(archive_fd, buffer, fileSize);
+    char buffer[TAR_BLOCK_SIZE];
+    ssize_t bytesRead;
+    while ((bytesRead = read(file_fd, buffer, TAR_BLOCK_SIZE)) > 0) {
+      if (write(archive_fd, buffer, bytesRead) != bytesRead) {
+        error_msg(STDERR_FILENO, "Failed to write file contents to archive\n");
+        close(file_fd);
+        close(archive_fd);
+        exit(EXIT_FAILURE);
+      }
+    }
 
-    free(buffer);
+    if (bytesRead == -1) {
+      error_msg(STDERR_FILENO, "Failed to read file contents\n");
+      close(file_fd);
+      close(archive_fd);
+      exit(EXIT_FAILURE);
+    }
+
     close(file_fd);
   }
 
   close(archive_fd);
 }
 
-// DEPENDS ON CREATE!!!
 void append_archive(const char *filename, char *files[], int file_count) {
   // TODO: Implement
   int i = 0;
-  int file_descriptor = open(filename, O_RDONLY);
+  int tarfile_name = open(filename, O_RDONLY);
 
-  if (file_descriptor == -1) {
+  if (tarfile_name == -1) {
     perror("Failed to open the file");
     exit(EXIT_FAILURE);
   }
@@ -77,46 +112,33 @@ void append_archive(const char *filename, char *files[], int file_count) {
   }
 }
 
-int octalToDecimal(const char *octal) {
-  int result = 0;
-  while (*octal >= '0' && *octal <= '7') {
-    result = result * 8 + (*octal - '0');
-    octal++;
-  }
-  return result;
-}
 
 void list_archive(const char *filename) {
-  // TODO: Implement
-  FILE *tarfile = fopen(filename, "rb");
-
-  if (tarfile == NULL) {
-    perror("Failed to open the file");
-    exit(EXIT_FAILURE);
+  int archive_fd = open(filename, O_RDONLY);
+  if (archive_fd == -1) {
+    error_msg(STDERR_FILENO, "Failed to open the file\n");
+    return;
   }
 
-  char header[TAR_BLOCK_SIZE];
-  while (fread(header, 1, TAR_BLOCK_SIZE, tarfile) == TAR_BLOCK_SIZE) {
-    char filename[101];
-    strncpy(filename, header, 100);
-
-    int filesize = octalToDecimal(header + 124);
-
-    if (filename[0] == '\0' && filesize == 0) {
+  FileEntry entry;
+  while (read(archive_fd, &entry, sizeof(entry)) == sizeof(entry)) {
+    if (entry.filename[0] == '\0') {
       break;
     }
 
-    printf("%s\n", filename);
+    my_printf(STDOUT_FILENO, entry.filename);
+    my_printf(STDOUT_FILENO, "\n");
 
-    fseek(tarfile,
-          (filesize + TAR_BLOCK_SIZE - 1) / TAR_BLOCK_SIZE * TAR_BLOCK_SIZE,
-          SEEK_CUR);
+    if (lseek(archive_fd, entry.size, SEEK_CUR) == -1) {
+      error_msg(STDERR_FILENO, "Seek failed\n");
+      close(archive_fd);
+      return;
+    }
   }
 
-  fclose(tarfile);
+  close(archive_fd);
 }
 
-// DEPENDS ON CREATE!!!
 void update_archive(const char *filename, char *files[], int file_count) {
   // TODO: Implement
 }
