@@ -178,10 +178,10 @@ void extract_archive(const char *filename) {
         dir = copyString(entry.filename, i);
         dir[i] = '\0';
         printf("dir copied: %s\n", dir);
-        mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO);
     }
 
-    int file_desc = open(entry.filename, O_RDONLY | O_CREAT);
+    int file_desc = open(entry.filename, O_RDWR | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
 
     if (file_desc == -1) {
         error_msg(STDERR_FILENO, "Cannot extract file\n");
@@ -192,6 +192,11 @@ void extract_archive(const char *filename) {
     write(file_desc, buffer, entry.size);
     my_printf(STDOUT_FILENO, entry.filename);
     my_printf(STDOUT_FILENO, "\n");
+
+    char *fileData = malloc(entry.size);
+    read(file_desc, fileData, entry.size);
+
+    printf("file data: %lu\n", entry.size);
 
     if (lseek(archive_fd, entry.size, SEEK_CUR) == -1) {
       error_msg(STDERR_FILENO, "Seek failed\n");
