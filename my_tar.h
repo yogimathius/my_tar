@@ -18,7 +18,6 @@
 #define TAR_CHKSUM_LEN 8
 #define TAR_LINK_INDICATOR_LEN 1
 #define TAR_LINKNAME_LEN 100
-#define TAR_BLOCK_SIZE 512
 
 typedef struct {
     char filename[TAR_FILENAME_LEN];

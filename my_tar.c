@@ -14,7 +14,7 @@ void create_archive(const char *archive_name, char *files[], int file_count) {
     struct stat file_stat;
     for (int i = 0; i < file_count; i++) {
         if (stat(files[i], &file_stat) != 0) {
-            char error_message[512] = "my_tar: ";
+            char error_message[TAR_HEADER_SIZE] = "my_tar: ";
             my_strncpy(error_message + my_strlen(error_message), files[i], sizeof(error_message) - my_strlen(error_message) - 1);
             my_strncpy(error_message + my_strlen(error_message), ": Cannot stat: No such file or directory\n", sizeof(error_message) - my_strlen(error_message) - 1);
             error_msg(STDERR_FILENO, error_message);
@@ -29,12 +29,12 @@ void create_archive(const char *archive_name, char *files[], int file_count) {
             continue;
         }
 
-        char buffer[512];
+        char buffer[TAR_HEADER_SIZE];
         ssize_t bytes_read;
-        while ((bytes_read = read(file_fd, buffer, 512)) > 0) {
+        while ((bytes_read = read(file_fd, buffer, TAR_HEADER_SIZE)) > 0) {
             write(archive_fd, buffer, bytes_read);
-            if (bytes_read % 512 != 0) {
-                ssize_t padding = 512 - (bytes_read % 512);
+            if (bytes_read % TAR_HEADER_SIZE != 0) {
+                ssize_t padding = TAR_HEADER_SIZE - (bytes_read % TAR_HEADER_SIZE);
                 char pad[padding];
                 my_memset(pad, 0, padding);
                 write(archive_fd, pad, padding);
@@ -45,7 +45,7 @@ void create_archive(const char *archive_name, char *files[], int file_count) {
     }
 
     // Write two empty blocks at the end of the archive
-    int two_blocks_size = TAR_BLOCK_SIZE * 2;
+    int two_blocks_size = TAR_HEADER_SIZE * 2;
     char end_block[two_blocks_size];
     my_memset(end_block, 0, two_blocks_size);
     write(archive_fd, end_block, two_blocks_size);
@@ -60,7 +60,7 @@ void append_archive(const char *filename, char *files[], int file_count) {
         return;
     }
 
-    if (lseek(archive_fd, -TAR_BLOCK_SIZE * 2, SEEK_END) == -1) {
+    if (lseek(archive_fd, -TAR_HEADER_SIZE * 2, SEEK_END) == -1) {
         error_msg(STDERR_FILENO, "Failed to seek in archive\n");
         close(archive_fd);
         return;
@@ -87,16 +87,16 @@ void append_archive(const char *filename, char *files[], int file_count) {
             continue;
         }
 
-        char buffer[TAR_BLOCK_SIZE];
+        char buffer[TAR_HEADER_SIZE];
         ssize_t bytesRead;
-        while ((bytesRead = read(file_fd, buffer, TAR_BLOCK_SIZE)) > 0) {
+        while ((bytesRead = read(file_fd, buffer, TAR_HEADER_SIZE)) > 0) {
             if (write(archive_fd, buffer, bytesRead) != bytesRead) {
                 error_msg(STDERR_FILENO, "Failed to write file contents to archive\n");
                 close(file_fd);
                 break;
             }
-            if (bytesRead % TAR_BLOCK_SIZE != 0) {
-                ssize_t padding = TAR_BLOCK_SIZE - (bytesRead % TAR_BLOCK_SIZE);
+            if (bytesRead % TAR_HEADER_SIZE != 0) {
+                ssize_t padding = TAR_HEADER_SIZE - (bytesRead % TAR_HEADER_SIZE);
                 char pad[padding];
                 my_memset(pad, 0, padding);
                 write(archive_fd, pad, padding);
@@ -110,7 +110,7 @@ void append_archive(const char *filename, char *files[], int file_count) {
         close(file_fd);
     }
 
-    int two_blocks_size = TAR_BLOCK_SIZE * 2;
+    int two_blocks_size = TAR_HEADER_SIZE * 2;
     char end_block[two_blocks_size];
     my_memset(end_block, 0, two_blocks_size);
     write(archive_fd, end_block, two_blocks_size);
@@ -219,7 +219,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
         close(temp_archive_fd);
 
         char end_block[1024] = {0};
-        write(temp_archive_fd, end_block, TAR_BLOCK_SIZE * 2);
+        write(temp_archive_fd, end_block, TAR_HEADER_SIZE * 2);
 
         if (my_rename(temp_archive_name, archive_name) == -1) {
             error_msg(STDERR_FILENO, "Failed to rename temporary archive\n");
@@ -247,7 +247,7 @@ void extract_archive(const char *archive_name) {
             exit(EXIT_FAILURE);
         }
 
-        char buffer[512];
+        char buffer[TAR_HEADER_SIZE];
         while (file_size > 0) {
             ssize_t bytes_read = read(archive_fd, buffer, sizeof(buffer));
             if (bytes_read <= 0) {
@@ -270,8 +270,8 @@ void extract_archive(const char *archive_name) {
 
         close(file_fd);
 
-        // Align to the next 512-byte boundary, if necessary
-        long padding = (512 - (file_size % 512)) % 512;
+        // Align to the next TAR_HEADER_SIZE-byte boundary, if necessary
+        long padding = (TAR_HEADER_SIZE - (file_size % TAR_HEADER_SIZE)) % TAR_HEADER_SIZE;
         if (padding > 0) {
             lseek(archive_fd, padding, SEEK_CUR);
         }
