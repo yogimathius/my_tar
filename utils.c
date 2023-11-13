@@ -1,8 +1,4 @@
 #include "my_tar.h"
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
 
 int open_archive(const char *archive_name, int flags, int set_mode) {
     int archive_fd;
