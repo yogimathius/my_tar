@@ -179,3 +179,10 @@ void write_content_to_archive(int archive_fd, int file_fd) {
         error_msg(STDERR_FILENO, "Failed to read file contents\n");
     }
 }
+
+void print_failed_stat(char *file) {
+    char error_message[TAR_HEADER_SIZE] = "my_tar: ";
+    my_strncpy(error_message + my_strlen(error_message), file, sizeof(error_message) - my_strlen(error_message) - 1);
+    my_strncpy(error_message + my_strlen(error_message), ": Cannot stat: No such file or directory\n", sizeof(error_message) - my_strlen(error_message) - 1);
+    error_msg(STDERR_FILENO, error_message);
+}
