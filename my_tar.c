@@ -5,11 +5,7 @@
 #include <unistd.h>
 
 void create_archive(const char *archive_name, char *files[], int file_count) {
-    int archive_fd = open(archive_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (archive_fd == -1) {
-        error_msg(STDERR_FILENO, "Failed to create archive\n");
-        exit(EXIT_FAILURE);
-    }
+    int archive_fd = open_archive(archive_name, O_WRONLY | O_CREAT | O_TRUNC, 1);
 
     struct stat file_stat;
     for (int i = 0; i < file_count; i++) {
@@ -53,12 +49,8 @@ void create_archive(const char *archive_name, char *files[], int file_count) {
     close(archive_fd);
 }
 
-void append_archive(const char *filename, char *files[], int file_count) {
-    int archive_fd = open(filename, O_RDWR);
-    if (archive_fd == -1) {
-        error_msg(STDERR_FILENO, "Failed to open the archive for appending\n");
-        return;
-    }
+void append_archive(const char *archive_name, char *files[], int file_count) {
+    int archive_fd = open_archive(archive_name, O_RDWR, 0);
 
     if (lseek(archive_fd, -TAR_HEADER_SIZE * 2, SEEK_END) == -1) {
         error_msg(STDERR_FILENO, "Failed to seek in archive\n");
@@ -119,11 +111,7 @@ void append_archive(const char *filename, char *files[], int file_count) {
 }
 
 void list_archive(const char *archive_name) {
-    int archive_fd = open(archive_name, O_RDONLY);
-    if (archive_fd == -1) {
-        error_msg(STDERR_FILENO, "Failed to open archive\n");
-        exit(EXIT_FAILURE);
-    }
+    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) == 0) {
@@ -146,11 +134,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
     int processed[file_count];
     my_memset(processed, 0, sizeof(processed));
 
-    int archive_fd = open(archive_name, O_RDONLY);
-    if (archive_fd == -1) {
-        error_msg(STDERR_FILENO, "Failed to open existing archive\n");
-        exit(EXIT_FAILURE);
-    }
+    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) > 0) {
@@ -185,7 +169,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
             exit(EXIT_FAILURE);
         }
 
-        archive_fd = open(archive_name, O_RDONLY);
+        archive_fd = open_archive(archive_name, O_RDONLY, 0);
         while (read_tar_header(archive_fd, &header) > 0) {
             long file_size;
             octal_to_long(header.size, &file_size);
@@ -229,11 +213,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
 }
 
 void extract_archive(const char *archive_name) {
-    int archive_fd = open(archive_name, O_RDONLY);
-    if (archive_fd == -1) {
-        error_msg(STDERR_FILENO, "Failed to open archive for extraction\n");
-        exit(EXIT_FAILURE);
-    }
+    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) == 0) {

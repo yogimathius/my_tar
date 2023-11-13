@@ -4,6 +4,21 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+int open_archive(const char *archive_name, int flags, int set_mode) {
+    int archive_fd;
+    if (set_mode == 1) {
+        archive_fd = open(archive_name, flags, 0644);
+    } else {
+        archive_fd = open(archive_name, flags);
+    }
+
+    if (archive_fd == -1) {
+        error_msg(STDERR_FILENO, "Failed to open archive\n");
+        exit(EXIT_FAILURE);
+    }
+    return archive_fd;
+}
+
 size_t my_strlen(const char *str) {
     const char *s;
     for (s = str; *s; ++s) {}
