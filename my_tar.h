@@ -68,4 +68,6 @@ void list_archive(const char *archive_name);
 
 void update_archive(const char *archive_name, char *files[], int file_count);
 
+void extract_archive(const char *archive_name);
+
 #endif /* MY_TAR_H */
