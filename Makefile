@@ -2,7 +2,7 @@ CC = gcc
 
 CFLAGS = -Wall
 
-SRC = my_tar.c utils.c create_archive.c append_archive.c
+SRC = my_tar.c utils.c create_archive.c append_archive.c list_archive.c
 
 HEADERS = my_tar.h
 
