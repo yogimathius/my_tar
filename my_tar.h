@@ -2,6 +2,12 @@
 #ifndef MY_TAR_H
 #define MY_TAR_H
 
+#include <unistd.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
 #define TAR_HEADER_SIZE 512
 #define TAR_FILENAME_LEN 100
 #define TAR_MODE_LEN 8
@@ -27,6 +33,30 @@ typedef struct {
     char padding[TAR_HEADER_SIZE - TAR_FILENAME_LEN - TAR_MODE_LEN - TAR_UID_LEN - TAR_GID_LEN - TAR_SIZE_LEN - TAR_MTIME_LEN - TAR_CHKSUM_LEN - TAR_LINK_INDICATOR_LEN - TAR_LINKNAME_LEN];
 } tar_header_t;
 
+size_t my_strlen(const char *str);
 
+int my_strcmp(const char *s1, const char *s2);
+
+void error_msg(int fd, const char *msg);
+
+void my_strncpy(char *dest, const char *src, size_t n);
+
+int my_rename(const char *oldpath, const char *newpath);
+
+int contains_dir(char *pathname);
+
+void my_memset(void *s, int c, size_t n);
+
+void num_to_octal(unsigned long num, char *str, int size);
+
+void my_puts(int fd, const char *msg);
+
+void octal_to_long(const char *str, long *num) ;
+
+void write_tar_header(int fd, const char *filename, const struct stat *st);
+
+int read_tar_header(int fd, tar_header_t *header);
+
+void copy_file_data(int source_fd, int dest_fd, long size);
 
 #endif /* MY_TAR_H */
