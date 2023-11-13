@@ -186,3 +186,26 @@ void print_failed_stat(char *file) {
     my_strncpy(error_message + my_strlen(error_message), ": Cannot stat: No such file or directory\n", sizeof(error_message) - my_strlen(error_message) - 1);
     error_msg(STDERR_FILENO, error_message);
 }
+
+void write_to_archive(char *files[], int file_count, int archive_fd) {
+    struct stat file_stat;
+    for (int i = 0; i < file_count; ++i) {
+        char *file = files[i];
+        if (stat(file, &file_stat) != 0) {
+            print_failed_stat(file);
+            continue;
+        }
+
+        write_tar_header(archive_fd, file, &file_stat);
+
+        int file_fd = open(file, O_RDONLY);
+        if (file_fd == -1) {
+            error_msg(STDERR_FILENO, "Failed to open file\n");
+            continue;
+        }
+
+        write_content_to_archive(archive_fd, file_fd);
+
+        close(file_fd);
+    }
+}
