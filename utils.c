@@ -157,3 +157,25 @@ void copy_file_data(int source_fd, int dest_fd, long size) {
         write(dest_fd, pad, padding);
     }
 }
+
+void write_content_to_archive(int archive_fd, int file_fd) {
+    char buffer[TAR_HEADER_SIZE];
+    ssize_t bytes_read;
+    while ((bytes_read = read(file_fd, buffer, TAR_HEADER_SIZE)) > 0) {
+        if (write(archive_fd, buffer, bytes_read) != bytes_read) {
+            error_msg(STDERR_FILENO, "Failed to write file contents to archive\n");
+            close(file_fd);
+            break;
+        }
+        if (bytes_read % TAR_HEADER_SIZE != 0) {
+            ssize_t padding = TAR_HEADER_SIZE - (bytes_read % TAR_HEADER_SIZE);
+            char pad[padding];
+            my_memset(pad, 0, padding);
+            write(archive_fd, pad, padding);
+        }
+    }
+
+    if (bytes_read == -1) {
+        error_msg(STDERR_FILENO, "Failed to read file contents\n");
+    }
+}

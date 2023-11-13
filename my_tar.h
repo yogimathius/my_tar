@@ -60,6 +60,8 @@ int read_tar_header(int fd, tar_header_t *header);
 
 void copy_file_data(int source_fd, int dest_fd, long size);
 
+void write_content_to_archive(int archive_fd, int file_fd);
+
 void create_archive(const char *archive_name, char *files[], int file_count);
 
 void append_archive(const char *archive_name, char *files[], int file_count);
