@@ -62,4 +62,6 @@ void copy_file_data(int source_fd, int dest_fd, long size);
 
 void create_archive(const char *archive_name, char *files[], int file_count);
 
+void append_archive(const char *archive_name, char *files[], int file_count);
+
 #endif /* MY_TAR_H */
