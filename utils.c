@@ -208,4 +208,9 @@ void write_to_archive(char *files[], int file_count, int archive_fd) {
 
         close(file_fd);
     }
+
+    int two_blocks_size = TAR_HEADER_SIZE * 2;
+    char end_block[two_blocks_size];
+    my_memset(end_block, 0, two_blocks_size);
+    write(archive_fd, end_block, two_blocks_size);
 }
