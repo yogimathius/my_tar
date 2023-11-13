@@ -66,4 +66,6 @@ void append_archive(const char *archive_name, char *files[], int file_count);
 
 void list_archive(const char *archive_name);
 
+void update_archive(const char *archive_name, char *files[], int file_count);
+
 #endif /* MY_TAR_H */
