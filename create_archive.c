@@ -21,17 +21,7 @@ void create_archive(const char *archive_name, char *files[], int file_count) {
             continue;
         }
 
-        char buffer[TAR_HEADER_SIZE];
-        ssize_t bytes_read;
-        while ((bytes_read = read(file_fd, buffer, TAR_HEADER_SIZE)) > 0) {
-            write(archive_fd, buffer, bytes_read);
-            if (bytes_read % TAR_HEADER_SIZE != 0) {
-                ssize_t padding = TAR_HEADER_SIZE - (bytes_read % TAR_HEADER_SIZE);
-                char pad[padding];
-                my_memset(pad, 0, padding);
-                write(archive_fd, pad, padding);
-            }
-        }
+        write_content_to_archive(archive_fd, file_fd);
 
         close(file_fd);
     }
