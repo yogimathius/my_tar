@@ -40,9 +40,7 @@ void extract_archive(const char *archive_name) {
 
         // Align to the next TAR_HEADER_SIZE-byte boundary, if necessary
         long padding = (TAR_HEADER_SIZE - (file_size % TAR_HEADER_SIZE)) % TAR_HEADER_SIZE;
-        if (padding > 0) {
-            lseek(archive_fd, padding, SEEK_CUR);
-        }
+        if (padding > 0) lseek(archive_fd, padding, SEEK_CUR);
     }
 
     close(archive_fd);
