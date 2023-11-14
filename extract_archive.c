@@ -8,12 +8,7 @@ void extract_archive(const char *archive_name) {
         long file_size;
         octal_to_long(header.size, &file_size);
 
-        int file_fd = open(header.filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (file_fd == -1) {
-            error_msg(STDERR_FILENO, "Failed to create file for extraction\n");
-            close(archive_fd);
-            exit(EXIT_FAILURE);
-        }
+        int file_fd = open_archive(header.filename, O_WRONLY | O_CREAT | O_TRUNC, 1);
 
         char buffer[TAR_HEADER_SIZE];
         while (file_size > 0) {

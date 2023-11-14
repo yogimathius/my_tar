@@ -10,6 +10,7 @@ int open_archive(const char *archive_name, int flags, int set_mode) {
 
     if (archive_fd == -1) {
         error_msg(STDERR_FILENO, "Failed to open archive\n");
+        close(archive_fd);
         exit(EXIT_FAILURE);
     }
     return archive_fd;
