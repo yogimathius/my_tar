@@ -9,7 +9,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
     int processed[file_count];
     my_memset(processed, 0, sizeof(processed));
 
-    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
+    int archive_fd = open_filepath(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) > 0) {
@@ -44,7 +44,7 @@ void update_archive(const char *archive_name, char *files[], int file_count) {
             exit(EXIT_FAILURE);
         }
 
-        archive_fd = open_archive(archive_name, O_RDONLY, 0);
+        archive_fd = open_filepath(archive_name, O_RDONLY, 0);
         while (read_tar_header(archive_fd, &header) > 0) {
             long file_size;
             octal_to_long(header.size, &file_size);

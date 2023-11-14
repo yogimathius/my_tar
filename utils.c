@@ -1,6 +1,6 @@
 #include "my_tar.h"
 
-int open_archive(const char *archive_name, int flags, int set_mode) {
+int open_filepath(const char *archive_name, int flags, int set_mode) {
     int archive_fd;
     if (set_mode == 1) {
         archive_fd = open(archive_name, flags, 0644);

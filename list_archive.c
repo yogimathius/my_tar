@@ -1,7 +1,7 @@
 #include "my_tar.h"
 
 void list_archive(const char *archive_name) {
-    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
+    int archive_fd = open_filepath(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) == 0) {

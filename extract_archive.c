@@ -1,14 +1,14 @@
 #include "my_tar.h"
 
 void extract_archive(const char *archive_name) {
-    int archive_fd = open_archive(archive_name, O_RDONLY, 0);
+    int archive_fd = open_filepath(archive_name, O_RDONLY, 0);
 
     tar_header_t header;
     while (read_tar_header(archive_fd, &header) == 0) {
         long file_size;
         octal_to_long(header.size, &file_size);
 
-        int file_fd = open_archive(header.filename, O_WRONLY | O_CREAT | O_TRUNC, 1);
+        int file_fd = open_filepath(header.filename, O_WRONLY | O_CREAT | O_TRUNC, 1);
 
         char buffer[TAR_HEADER_SIZE];
         while (file_size > 0) {

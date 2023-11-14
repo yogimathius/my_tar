@@ -32,7 +32,7 @@ typedef struct {
     char padding[TAR_HEADER_SIZE - TAR_FILENAME_LEN - TAR_MODE_LEN - TAR_UID_LEN - TAR_GID_LEN - TAR_SIZE_LEN - TAR_MTIME_LEN - TAR_CHKSUM_LEN - TAR_LINK_INDICATOR_LEN - TAR_LINKNAME_LEN];
 } tar_header_t;
 
-int open_archive(const char *archive_name, int flags, int set_mode);
+int open_filepath(const char *archive_name, int flags, int set_mode);
 
 size_t my_strlen(const char *str);
 
