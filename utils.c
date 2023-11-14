@@ -138,7 +138,7 @@ int read_tar_header(int fd, tar_header_t *header) {
 }
 
 void copy_file_data(int source_fd, int dest_fd, long size) {
-    char buffer[512];
+    char buffer[TAR_HEADER_SIZE];
     long total_bytes_read = 0;
 
     while (total_bytes_read < size) {
@@ -151,9 +151,9 @@ void copy_file_data(int source_fd, int dest_fd, long size) {
         total_bytes_read += bytes_read;
     }
 
-    long padding = (512 - (size % 512)) % 512;
+    long padding = (TAR_HEADER_SIZE - (size % TAR_HEADER_SIZE)) % TAR_HEADER_SIZE;
     if (padding > 0) {
-        char pad[512] = {0};
+        char pad[TAR_HEADER_SIZE] = {0};
         write(dest_fd, pad, padding);
     }
 }
