@@ -62,8 +62,6 @@ void copy_file_data(int source_fd, int dest_fd, long size);
 
 void write_content_to_archive(int archive_fd, int file_fd);
 
-void print_failed_stat(char *file);
-
 void write_to_archive(char *files[], int file_count, int archive_fd);
 
 void create_archive(const char *archive_name, char *files[], int file_count);
