@@ -1,16 +1,16 @@
-# Welcome to My Tar
+## Welcome to My Tar
 
 my_tar is a custom implementation of the Unix tar command. It allows users to create, append, list, update, and extract from TAR archives, following the specifications of the traditional Unix TAR utility, but with custom handling and features.
 
-# Task
+## Task
 
 The primary challenge of this project was to replicate the functionality of the classic tar command in Unix systems, but with specific constraints on which C library functions could be used. The project aims to demonstrate a deep understanding of file operations and TAR archive format, all within a constrained development environment.
 
-# Description
+## Description
 
 my_tar is written in C and handles basic TAR operations like creating archives, appending files, listing contents, updating archives based on modification times, and extracting files. It includes custom implementations of standard library functions to fit the constraints of the project.
 
-# Installation
+## Installation
 
 To install and compile my_tar, follow these steps:
 
@@ -30,7 +30,7 @@ git clone [URL_of_Your_Repository]
 make
 ```
 
-# Usage
+## Usage
 
 my_tar can be used with different modes, similar to the Unix tar command. Here's how to use each mode:
 
